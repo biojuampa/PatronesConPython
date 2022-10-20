@@ -1,9 +1,9 @@
 #include <stdio.h>
 
 
-int main(void) {
+int main() {
 
-	char nombre[100];
+	char nombre[50];
        
 	printf("¿Cuál es tu nombre? ");
 	scanf("%s", nombre);
