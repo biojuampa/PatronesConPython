@@ -3,7 +3,7 @@
 
 int main(void) {
 
-	char nombre[] = "nobody";
+	char nombre[100];
        
 	printf("¿Cuál es tu nombre? ");
 	scanf("%s", nombre);
