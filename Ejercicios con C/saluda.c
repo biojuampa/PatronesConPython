@@ -1,4 +1,14 @@
 #include <stdio.h>
 
-nombre = input("¿Cuál es tu nombre?");
-printf("Hola, %s!\n", nombre);
+
+int main(void) {
+
+	char nombre[] = "nobody";
+       
+	printf("¿Cuál es tu nombre? ");
+	scanf("%s", nombre);
+	printf("Hola, %s!\n", nombre);
+
+	return 0;
+
+}
