@@ -19,26 +19,26 @@ phonebook = {}
 phonebook_name = 'phonebook'
 
 
-def load_phonebook(path):
-    print(f'Abriendo la agenda [{os.path.basename(path)}] ...')
+def load_phonebook(book_name):
+    print(f'Abriendo la agenda [{os.path.basename(book_name)}] ...')
     sleep(1)
-    if not os.path.exists(f'{path}.bin'):
-        print(f'La agenda [{os.path.basename(path)}] no existe!')
+    if not os.path.exists(f'{book_name}.bin'):
+        print(f'La agenda [{os.path.basename(book_name)}] no existe!')
         sleep(2)
-        main_menu()
+        return -1
     
-    if not os.path.getsize(f'{path}.bin'):
-        print(f'La agenda [{os.path.basename(path)}] está vacía')
+    if not os.path.getsize(f'{book_name}.bin'):
+        print(f'La agenda [{os.path.basename(book_name)}] está vacía')
         return {}
     
     try:
-        with open(f'{path}.bin', 'rb') as fhand:
+        with open(f'{book_name}.bin', 'rb') as fhand:
             book = pickle.load(fhand)        
         return book
     except:
-        print(f'ERROR: Imposible leer la agenda [{os.path.basename(path)}]!')
+        print(f'ERROR: Imposible leer la agenda [{os.path.basename(book_name)}]!')
         sleep(2)
-        main_menu()
+        return -1
 
 
 def create_phonebook(path):
@@ -254,19 +254,24 @@ def main_menu():
         if option == '1': # Cargar
             global phonebook
             global phonebook_name
+            
+            book_name = input(f'Nombre de la agenda [{phonebook_name}]: ')
+            if book_name:
+                last_pb_name = phonebook_name
+                phonebook_name = book_name
+                
+            pb = load_phonebook(f'{BOOKS}/{phonebook_name}')
+            if pb == -1:
+                phonebook_name = last_pb_name
+                continue
+            
+            phonebook = pb
+            secondary_menu()
+        
+        elif option == '2': # Crear
             book_path = input(f'Nombre de la agenda [{phonebook_name}]: ')
             if book_path:
-                phonebook = load_phonebook(f'{BOOKS}/{book_path}')
-                phonebook_name = book_path
-            else:
-                phonebook = load_phonebook(f'{BOOKS}/{phonebook_name}')
-            
-            secondary_menu()
-            
-        elif option == '2': # Crear
-            path = input(f'Ruta y nombre de la agenda [{phonebook_name}]: ')
-            if path:
-                create_phonebook(path)
+                create_phonebook(book_path)
             else:
                 create_phonebook(phonebook_name)
         
