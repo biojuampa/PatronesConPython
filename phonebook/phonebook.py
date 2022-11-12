@@ -11,7 +11,8 @@ import os
 from time import sleep
 
 
-BOOKS = f"{os.environ['HOME']}/.phonebook/books"
+WORKDIR = f'{os.environ["HOME"]}/.phonebook'
+BOOKS = f'{WORKDIR}/books'
 
 
 phonebook_path = 'phonebook'
@@ -294,9 +295,10 @@ def main_menu():
         
 
 if __name__ == '__main__':
-    if not os.path.exists(BOOKS):
+    if not os.path.exists(WORKDIR):
         try:
-            os.mkdir(BOOKS, 755)
+            os.mkdir(WORKDIR)
+            os.mkdir(BOOKS)
             print('Creando directorio de trabajo ...')
             sleep(1)
         except:
@@ -305,6 +307,15 @@ if __name__ == '__main__':
             print('       guardar los cambios realizados.\n')
             input('Presione enter para seguir ...')
     
+    if not os.path.exists(BOOKS):
+        try:
+            os.mkdir(BOOKS)
+        except :
+            print('ERROR: No es posible crear el directorio de trabajo')
+            print('       Aún podrá trabajar con la agenda, pero no podrá')
+            print('       guardar los cambios realizados.\n')
+            input('Presione enter para seguir ...')
+            
     main_menu()
 
 
