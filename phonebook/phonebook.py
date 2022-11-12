@@ -19,32 +19,36 @@ phonebook = {}
 phonebook_name = 'phonebook'
 
 
-def load_phonebook(book_name):
-    print(f'Abriendo la agenda [{os.path.basename(book_name)}] ...')
+def load_phonebook(book_path):
+    book_name = os.path.basename(book_path)
+    
+    print(f'Abriendo la agenda [{book_name}] ...')
     sleep(1)
-    if not os.path.exists(f'{book_name}.bin'):
-        print(f'La agenda [{os.path.basename(book_name)}] no existe!')
+    if not os.path.exists(f'{book_path}.bin'):
+        print(f'La agenda [{book_name}] no existe!')
         sleep(2)
         return -1
     
-    if not os.path.getsize(f'{book_name}.bin'):
-        print(f'La agenda [{os.path.basename(book_name)}] está vacía')
+    if not os.path.getsize(f'{book_path}.bin'):
+        print(f'La agenda [{book_name}] está vacía')
         return {}
     
     try:
-        with open(f'{book_name}.bin', 'rb') as fhand:
+        with open(f'{book_path}.bin', 'rb') as fhand:
             book = pickle.load(fhand)        
         return book
     except:
-        print(f'ERROR: Imposible leer la agenda [{os.path.basename(book_name)}]!')
+        print(f'ERROR: ¡La agenda [{book_name}] existe, pero no se pudo leer!')
         sleep(2)
         return -1
 
 
-def create_phonebook(book_name):
-    print(f'Creando la agenda [{os.path.basename(book_name)}] ...')
+def create_phonebook(book_path):
+    book_name = os.path.basename(book_path)
+    
+    print(f'Creando la agenda [{book_name}] ...')
     sleep(1)
-    if os.path.exists(f'BOOKS/{book_name}.bin') and os.path.getsize(f'{book_name}.bin'):
+    if os.path.exists(f'{book_path}.bin') and os.path.getsize(f'{book_path}.bin'):
         print(f'La agenda [{book_name}] existe y tiene datos. Por seguridad, no se creará\n'
               'una agenda nueva que sobreescriba otra existente conteniendo datos.\n'
               'Primero debe borrarla, bien desde el menú principal, o bien manualmente.\n'
@@ -53,47 +57,71 @@ def create_phonebook(book_name):
         return -1
     
     try:
-        fhand = open(f'{book_name}.bin', 'wb')
+        fhand = open(f'{book_path}.bin', 'wb')
         fhand.close()
     except:
-        print(f'ERROR: No se pudo crear la agenda [{book_name}]!')
+        print(f'ERROR: ¡No se pudo crear la agenda [{book_name}]!')
         sleep(2)
         return -1
 
     return {}
 
 
-def delete_phonebook(path):
-    option = input(f'Está seguro que desea borrar permanentemente la agenda [{path}] [y/N]')
-
+def delete_phonebook(book_path):
+    book_name = os.path.basename(book_path)
+    
+    option = input(f'Está seguro que desea borrar permanentemente la agenda [{book_name}] [y/N]: ')
     if option == 'y':
-        print(f'Borrando la agenda [{path}] ...')
+        if not os.path.exists(f'{book_path}.bin'):
+            print(f'La agenda [{book_name}] NO existe, compruebe el nombre.')
+            sleep(2)
+            return -1
+
+    try:
+        print(f'Borrando la agenda [{book_name}] ...')
+        os.remove(f'{book_path}.bin')
         sleep(1)
-        if os.path.exists(f'{path}.bin'):
-            os.remove(f'{path}.bin')
-            global phonebook_name
-            phonebook_name = 'phonebook'
-        else:
-            print(f'La agenda [{path}] NO existe, compruebe el nombre y la ruta.')
+        print(f'La agenda [{book_name}] fue borrada con éxito.')
+        sleep(2)
+    except:
+        print(f'ERROR: ¡La agenda [{book_name}] existe, pero no se pudo borrar!')
+        sleep(2)
+        return -1            
             
         
-def save_phonebook(path):
-    with open(f'{path}.bin', 'rb') as fhand:
-        saved_phonebook = pickle.load(fhand)
+def save_phonebook(book_path, pbook):
+    book_name = os.path.basename(book_path)
     
-    if saved_phonebook == phonebook:
-        return 
-    
-    print(f'Guardando la agenda [{path}] ...')
-    sleep(1)
-    
-    with open(f'{path}.bin', 'wb') as fhand:
-        pickle.dump(phonebook, fhand)
-    
+    try:
+        print(f'Guardando la agenda [{book_name}] ...')    
+        with open(f'{book_path}.bin', 'wb') as fhand:
+            pickle.dump(pbook, fhand)
+        sleep(1)
+    except:
+        print(f'ERROR: ¡La agenda [{book_name}] no se pudo guardar!')
+        sleep(2)
+        return -1
 
-def show_contacts(contact):
+
+def phonebook_change(book_path, pbook):
+    book_name = os.path.basename(book_path)
+    
+    try:
+        with open(f'{book_path}.bin', 'rb') as fhand:
+            saved_pbook = pickle.load(fhand)
+        if saved_pbook == pbook:
+            return False
+        else:
+            return True        
+    except:
+        print(f'ERROR: ¡Hubo un error comprobando la agenda [{book_name}]!')
+        sleep(2)
+        return -1
+
+
+def show_contacts(contact, pbook):
     match = False
-    for name, phones in phonebook.items():
+    for name, phones in pbook.items():
         if name.startswith(contact):
             match = True
             print(f'\n  * {name}:')
@@ -107,14 +135,13 @@ def show_contacts(contact):
     input('\nPersione enter para continuar ...')
 
 
-def add_contact(first, last, numbers):
+def add_contact(first, last, numbers, pbook):
     name = f'{last}, {first}'
-    phonebook[name] = numbers
-    save_phonebook(phonebook_name)
+    pbook[name] = numbers
     
 
-def show_all_contacts():
-    for name, phones in phonebook.items():
+def show_all_contacts(pbook):
+    for name, phones in pbook.items():
         print(f'\n  * {name}:')
         for i in range(len(phones)):
             print(f'      - Tel. {i+1}: {phones[i]}')
@@ -122,50 +149,49 @@ def show_all_contacts():
     input('\nPersione enter para continuar ...')
 
 
-def add_phone(contact, phone):
-    if contact in phonebook:
-        phonebook[contact].append(phone)
+def add_phone(contact, phone, pbook):
+    if contact in pbook:
+        pbook[contact].append(phone)
     else:
         print(f'ERROR: El nombre de contacto \'{contact}\' es incorrecto!')
         sleep(2)
 
 
-def delete_phone(contact):
-    if contact not in phonebook:
+def delete_phone(contact, pbook):
+    if contact not in pbook:
         print(f'ERROR: El nombre de contacto \'{contact}\' es incorrecto!')
         sleep(2)
-        return 
+        return -1
     
-    if phonebook[contact]:
-        phones = phonebook[contact]
+    if pbook[contact]:
+        phones = pbook[contact]
         for i in range(len(phones)):
             print(f'[{i+1}] {phones[i]}')
         
-        option = input('\nDime qué teléfono deseas borrar: ')
         try:
+            option = int(input('\nDime qué teléfono deseas borrar: '))
             if option < 1:
                 raise
-            print(f'Borrando {phones[int(option)-1]} de \'{contact}\' ...')
-            del phones[int(option)-1]
+            print(f'Borrando {phones[option-1]} de \'{contact}\' ...')
+            del phones[option-1]
             sleep(2)
         except:
             print('\nERROR: Opción incorrecta')
             sleep(2)
+            return -1
             
     else:
         print(f'\n\'{contact}\' no tiene ningún teléfono asociado.')
         sleep(2)
         
 
-def delete_contact(contact):
-    if contact in phonebook:
-        print(f'Borrando el contacto \'{contact}\' de la agenda [{phonebook_name}] ...')
-        del phonebook[contact]
-        sleep(2)
+def delete_contact(contact, pbook):
+    if contact in pbook:        
+        del pbook[contact]
     else:
         print(f'\'{contact}\' No existe.')
-        sleep(2)
-
+        return -1
+    
 
 def secondary_menu():
     while True:
@@ -184,56 +210,64 @@ def secondary_menu():
         
         option = input('Elige una opción: ')
         
-        if option == '1': # show contact
-            contact = input('Escribe el nombre o parte de él: ')
+# ------------------------------- Show contact ------------------------------- #
+        if option == '1': 
+            contact = input('Escribe el nombre o parte del contacto: ')
             if not contact:
                 continue 
-            show_contacts(contact.lstrip())
-        
-        elif option == '2': # add contact
-            first_name = input('Nombre/s del contacto: ')
-            last_name = input('Apellido del contacto: ')
+            show_contacts(contact.strip(), phonebook)
+
+# ------------------------------- Add contact -------------------------------- #
+        elif option == '2':
+            first_name = input('Nombre/s del contacto: ').strip()
+            last_name = input('Apellido del contacto: ').strip()
             phones = list()
             while True:
                 phone = input(f'Teléfono de {last_name}, {first_name}'
                                 ' (enter para terminar): '
                                 )
                 if not phone:
-                    break
-           
+                    break           
                 phones.append(phone.strip())
                 
-            add_contact(first_name.strip(), last_name.strip(), phones)
-        
-        elif option == '3': # show all contact
-            show_all_contacts()
-        
-        elif option == '4': # add phone
-            contact = input('Nombre completo del contacto: ')
-            phone = input(f'Teléfono para agregar a \'{contact}\': ')
+            add_contact(first_name, last_name, phones, phonebook)
+
+# ------------------------------- All contacts ------------------------------- #
+        elif option == '3':
+            show_all_contacts(phonebook)
+
+# ------------------------------- Add phone ---------------------------------- #
+        elif option == '4':
+            contact = input('Nombre completo del contacto: ').strip()
+            phone = input(f'Teléfono para agregar a \'{contact}\': ').strip()
             if phone:
-                add_phone(contact.strip(), phone.strip())
-        
-        elif option == '5': # del phone
-            contact = input('Nombre completo del contacto: ')
-            delete_phone(contact.strip())
-        
-        elif option == '6': # del contact
+                add_phone(contact, phone, phonebook)
+
+# ------------------------------- Delete phone ------------------------------- #
+        elif option == '5':
+            contact = input('Nombre completo del contacto: ').strip()
+            delete_phone(contact, phonebook)
+
+# ------------------------------- Delete contact ----------------------------- #
+        elif option == '6':
             contact = input('Nombre completo del contacto a borrar: ')
-            delete_contact(contact)
-        
-        elif option == '7': # save
-            save_phonebook(phonebook_name)
-        
-        elif option == '8': # main menu
-            save_phonebook(phonebook_name)
+            print(f'Borrando el contacto \'{contact}\' de la agenda [{phonebook_name}] ...')
+            delete_contact(contact, phonebook)
+            sleep(2)
+
+# ------------------------------- Save agenda -------------------------------- #
+        elif option == '7':
+            save_phonebook(f'{BOOKS}/{phonebook_name}', phonebook)
+
+# ------------------------------- Main menu ---------------------------------- #
+        elif option == '8':
+            save_phonebook(f'{BOOKS}/{phonebook_name}', phonebook)
             main_menu()
         
         else:
             pass
-        
 
-# TODO: Quzás implementar una función para listar las agendas en lugar de hacerlo en el menú
+
 def main_menu():
     global phonebook
     global phonebook_name
@@ -254,9 +288,9 @@ def main_menu():
         
 # ------------------------------- Abrir agenda ------------------------------- #
         if option == '1':
+            last_pb_name = phonebook_name
             book_name = input(f'Nombre de la agenda [{phonebook_name}]: ')
             if book_name:
-                last_pb_name = phonebook_name
                 phonebook_name = book_name
                 
             pb = load_phonebook(f'{BOOKS}/{phonebook_name}')
@@ -269,9 +303,9 @@ def main_menu():
             
 # ------------------------------- Crear agenda ------------------------------- #
         elif option == '2':
+            last_pb_name = phonebook_name
             book_name = input(f'Nombre de la agenda [{phonebook_name}]: ')
             if book_name:
-                last_pb_name = phonebook_name
                 phonebook_name = book_name
                 
             pb = create_phonebook(f'{BOOKS}/{phonebook_name}')
@@ -282,14 +316,18 @@ def main_menu():
             phonebook = pb
             secondary_menu()            
 
-# ------------------------------- Borar agenda ------------------------------- #
+# ------------------------------- Borrar agenda ------------------------------ #
         elif option == '3':
-            path = input(f'Ruta y nombre de la agenda [{phonebook_name}]: ')
-            if path:
-                delete_phonebook(path)
-            else:
-                delete_phonebook(phonebook_name)
-        
+            last_pb_name = phonebook_name
+            book_name = input(f'Nombre de la agenda [{phonebook_name}]: ')
+            if book_name:
+                phonebook_name = book_name
+                
+            pb = delete_phonebook(f'{BOOKS}/{phonebook_name}')
+            if pb == -1:
+                phonebook_name = last_pb_name
+                continue
+
 # ------------------------------- Listar agenda ------------------------------ #        
         elif option == '4':
             print('\n  Agendas disponibles:')
@@ -332,45 +370,3 @@ if __name__ == '__main__':
             input('Presione enter para seguir ...')
             
     main_menu()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
