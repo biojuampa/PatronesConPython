@@ -11,6 +11,9 @@ import os
 from time import sleep
 
 
+BOOKS = f"{os.environ['HOME']}/.phonebook/books"
+
+
 phonebook_path = 'phonebook'
 phonebook = {}
 
@@ -18,7 +21,7 @@ phonebook = {}
 def create_phonebook(path):
     print(f'Creando la agenda [{path}] ...')
     sleep(1)
-    if os.path.exists(f'{path}.bin') and os.path.getsize(f'{path}.bin'):
+    if os.path.exists(f'BOOKS/{path}.bin') and os.path.getsize(f'{path}.bin'):
         print(f'La agenda [{path}] existe y tiene datos. Por seguridad, no se creará\n'
               'una agenda nueva que sobreescriba otra existente conteniendo datos.\n'
               'Primero debe borrarla, bien desde el menú principal, o bien manualmente.\n'
@@ -54,7 +57,7 @@ def delete_phonebook(path):
             
         
 def load_phonebook(path):
-    print(f'Cargando la agenda [{path}] ...')
+    print(f'Abriendo la agenda [{path}] ...')
     sleep(1)
     if not os.path.exists(f'{path}.bin'):
         print(f'La agenda "{path}" no existe!')
@@ -81,6 +84,12 @@ def load_phonebook(path):
 
 
 def save_phonebook(path):
+    with open(f'{path}.bin', 'rb') as fhand:
+        saved_phonebook = pickle.load(fhand)
+    
+    if saved_phonebook == phonebook:
+        return 
+    
     print(f'Guardando la agenda [{path}] ...')
     sleep(1)
     
@@ -140,6 +149,8 @@ def delete_phone(contact):
         
         option = input('\nDime qué teléfono deseas borrar: ')
         try:
+            if option < 1:
+                raise
             print(f'Borrando {phones[int(option)-1]} de \'{contact}\' ...')
             del phones[int(option)-1]
             sleep(2)
@@ -240,7 +251,8 @@ def main_menu():
         print('    [1] Abrir agenda existente')
         print('    [2] Crear agenda nueva')
         print('    [3] Borrar agenda existente')
-        print('    [4] Salir')
+        print('    [4] Listar agendas creadas')
+        print('    [5] Salir')
         print()
         
         option = input('Elige una opción: ')
@@ -270,7 +282,10 @@ def main_menu():
             else:
                 delete_phonebook(phonebook_path)
         
-        elif option == '4': # Salir
+        elif option == '4':
+            pass
+        
+        elif option == '5': # Salir
             print('\nSee you soon ...\n')
             sys.exit()
             
@@ -278,7 +293,19 @@ def main_menu():
             pass
         
 
-main_menu()
+if __name__ == '__main__':
+    if not os.path.exists(BOOKS):
+        try:
+            os.mkdir(BOOKS, 755)
+            print('Creando directorio de trabajo ...')
+            sleep(1)
+        except:
+            print('ERROR: No es posible crear el directorio de trabajo')
+            print('       Aún podrá trabajar con la agenda, pero no podrá')
+            print('       guardar los cambios realizados.\n')
+            input('Presione enter para seguir ...')
+    
+    main_menu()
 
 
 
