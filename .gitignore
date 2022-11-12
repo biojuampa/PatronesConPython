@@ -11,3 +11,6 @@ Ejercicios\ con\ C/*
 __pycache__
 db.sqlite3
 virtual/
+
+# Otros #
+*.bin

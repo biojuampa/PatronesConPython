@@ -35,7 +35,7 @@ def create_phonebook(path):
         phonebook_path = path
     except:
         print(f'ERROR: No se pudo crear la agenda [{path}]!')
-        sleep(3)
+        sleep(2)
         main_menu()
 
 
@@ -58,7 +58,7 @@ def load_phonebook(path):
     sleep(1)
     if not os.path.exists(f'{path}.bin'):
         print(f'La agenda "{path}" no existe!')
-        sleep(3)
+        sleep(2)
         main_menu()
     
     global phonebook_path
@@ -76,7 +76,7 @@ def load_phonebook(path):
     
     except:
         print(f'ERROR: Imposible leer la agenda "{path}"!')
-        sleep(3)
+        sleep(2)
         main_menu()
 
 
@@ -123,28 +123,43 @@ def add_phone(contact, phone):
     if contact in phonebook:
         phonebook[contact].append(phone)
     else:
-        print(f'ERROR: El nombre de contacto {contact} es incorrecto!')
-        sleep(3)
+        print(f'ERROR: El nombre de contacto \'{contact}\' es incorrecto!')
+        sleep(2)
 
 
 def delete_phone(contact):
-    if not phonebook[contact]:
-        print(f'ERROR: El nombre de contacto {contact} es incorrecto!')
+    if contact not in phonebook:
+        print(f'ERROR: El nombre de contacto \'{contact}\' es incorrecto!')
+        sleep(2)
         return 
     
-    phones = phonebook[contact]
-    for i in range(len(phones)):
-        print(f'[{i+1}] {phones[i]}')
-    
-    option = input('\nDime qué teléfono deseas borrar: ')
-    
-    print(f'Borrando {phones[int(option)-1]} de {contact} ...')
-    del phones[int(option)-1]
-    sleep(2)
-    
+    if phonebook[contact]:
+        phones = phonebook[contact]
+        for i in range(len(phones)):
+            print(f'[{i+1}] {phones[i]}')
+        
+        option = input('\nDime qué teléfono deseas borrar: ')
+        try:
+            print(f'Borrando {phones[int(option)-1]} de \'{contact}\' ...')
+            del phones[int(option)-1]
+            sleep(2)
+        except:
+            print('\nERROR: Opción incorrecta')
+            sleep(2)
+            
+    else:
+        print(f'\n\'{contact}\' no tiene ningún teléfono asociado.')
+        sleep(2)
+        
 
-def delete_contact():
-    pass
+def delete_contact(contact):
+    if contact in phonebook:
+        print(f'Borrando el contacto \'{contact}\' de la agenda [{phonebook_path}] ...')
+        del phonebook[contact]
+        sleep(2)
+    else:
+        print(f'\'{contact}\' No existe.')
+        sleep(2)
 
 
 def secondary_menu():
@@ -164,11 +179,13 @@ def secondary_menu():
         
         option = input('Elige una opción: ')
         
-        if option == '1':
+        if option == '1': # show contact
             contact = input('Escribe el nombre o parte de él: ')
-            show_contacts(contact)
+            if not contact:
+                continue 
+            show_contacts(contact.lstrip())
         
-        elif option == '2':
+        elif option == '2': # add contact
             first_name = input('Nombre/s del contacto: ')
             last_name = input('Apellido del contacto: ')
             phones = list()
@@ -178,26 +195,27 @@ def secondary_menu():
                                 )
                 if not phone:
                     break
-                
+           
                 phones.append(phone.strip())
                 
-            add_contact(first_name, last_name, phones)
+            add_contact(first_name.strip(), last_name.strip(), phones)
         
-        elif option == '3':
+        elif option == '3': # show all contact
             show_all_contacts()
         
-        elif option == '4':
+        elif option == '4': # add phone
             contact = input('Nombre completo del contacto: ')
-            phone = input(f'Teléfono para agregar a {contact}: ')
+            phone = input(f'Teléfono para agregar a \'{contact}\': ')
             if phone:
-                add_phone(contact, phone)
+                add_phone(contact.strip(), phone.strip())
         
-        elif option == '5':
+        elif option == '5': # del phone
             contact = input('Nombre completo del contacto: ')
-            delete_phone(contact)
+            delete_phone(contact.strip())
         
-        elif option == '6':
-            pass
+        elif option == '6': # del contact
+            contact = input('Nombre completo del contacto a borrar: ')
+            delete_contact(contact)
         
         elif option == '7': # save
             save_phonebook(phonebook_path)
