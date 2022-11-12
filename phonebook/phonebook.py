@@ -41,28 +41,26 @@ def load_phonebook(book_name):
         return -1
 
 
-def create_phonebook(path):
-    print(f'Creando la agenda [{path}] ...')
+def create_phonebook(book_name):
+    print(f'Creando la agenda [{os.path.basename(book_name)}] ...')
     sleep(1)
-    if os.path.exists(f'BOOKS/{path}.bin') and os.path.getsize(f'{path}.bin'):
-        print(f'La agenda [{path}] existe y tiene datos. Por seguridad, no se creará\n'
+    if os.path.exists(f'BOOKS/{book_name}.bin') and os.path.getsize(f'{book_name}.bin'):
+        print(f'La agenda [{book_name}] existe y tiene datos. Por seguridad, no se creará\n'
               'una agenda nueva que sobreescriba otra existente conteniendo datos.\n'
               'Primero debe borrarla, bien desde el menú principal, o bien manualmente.\n'
               )
         input('Pulse enter para continuar ...')
-        main_menu()
+        return -1
     
-    global phonebook
-    global phonebook_name
     try:
-        fhand = open(f'{path}.bin', 'wb')
+        fhand = open(f'{book_name}.bin', 'wb')
         fhand.close()
-        phonebook = {}
-        phonebook_name = path
     except:
-        print(f'ERROR: No se pudo crear la agenda [{path}]!')
+        print(f'ERROR: No se pudo crear la agenda [{book_name}]!')
         sleep(2)
-        main_menu()
+        return -1
+
+    return {}
 
 
 def delete_phonebook(path):
@@ -237,6 +235,9 @@ def secondary_menu():
 
 # TODO: Quzás implementar una función para listar las agendas en lugar de hacerlo en el menú
 def main_menu():
+    global phonebook
+    global phonebook_name
+        
     while True:
         os.system('clear')
         print()
@@ -251,10 +252,8 @@ def main_menu():
         
         option = input('Elige una opción: ')
         
-        if option == '1': # Cargar
-            global phonebook
-            global phonebook_name
-            
+# ------------------------------- Abrir agenda ------------------------------- #
+        if option == '1':
             book_name = input(f'Nombre de la agenda [{phonebook_name}]: ')
             if book_name:
                 last_pb_name = phonebook_name
@@ -267,24 +266,32 @@ def main_menu():
             
             phonebook = pb
             secondary_menu()
-        
-        elif option == '2': # Crear
-            book_path = input(f'Nombre de la agenda [{phonebook_name}]: ')
-            if book_path:
-                create_phonebook(book_path)
-            else:
-                create_phonebook(phonebook_name)
-        
-            secondary_menu()
-        
-        elif option == '3': # Borrar
+            
+# ------------------------------- Crear agenda ------------------------------- #
+        elif option == '2':
+            book_name = input(f'Nombre de la agenda [{phonebook_name}]: ')
+            if book_name:
+                last_pb_name = phonebook_name
+                phonebook_name = book_name
+                
+            pb = create_phonebook(f'{BOOKS}/{phonebook_name}')
+            if pb == -1:
+                phonebook_name = last_pb_name
+                continue
+            
+            phonebook = pb
+            secondary_menu()            
+
+# ------------------------------- Borar agenda ------------------------------- #
+        elif option == '3':
             path = input(f'Ruta y nombre de la agenda [{phonebook_name}]: ')
             if path:
                 delete_phonebook(path)
             else:
                 delete_phonebook(phonebook_name)
         
-        elif option == '4': # Listar
+# ------------------------------- Listar agenda ------------------------------ #        
+        elif option == '4':
             print('\n  Agendas disponibles:')
             books = os.listdir(BOOKS)
             for book in books:
@@ -292,14 +299,16 @@ def main_menu():
                     print('    -', book.split('.')[0])
             input('\nPulsa enter para continuar ...')
         
-        elif option == '5': # Salir
+# ------------------------------- Salir -------------------------------------- #        
+        elif option == '5':
             print('\nSee you soon ...\n')
             sys.exit()
             
         else: # Otro
             pass
-        
 
+
+# ------------------------------- Main --------------------------------------- #
 if __name__ == '__main__':
     if not os.path.exists(WORKDIR):
         try:
