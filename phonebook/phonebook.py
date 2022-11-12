@@ -15,8 +15,30 @@ WORKDIR = f'{os.environ["HOME"]}/.phonebook'
 BOOKS = f'{WORKDIR}/books'
 
 
-phonebook_path = 'phonebook'
 phonebook = {}
+phonebook_name = 'phonebook'
+
+
+def load_phonebook(path):
+    print(f'Abriendo la agenda [{os.path.basename(path)}] ...')
+    sleep(1)
+    if not os.path.exists(f'{path}.bin'):
+        print(f'La agenda [{os.path.basename(path)}] no existe!')
+        sleep(2)
+        main_menu()
+    
+    if not os.path.getsize(f'{path}.bin'):
+        print(f'La agenda [{os.path.basename(path)}] está vacía')
+        return {}
+    
+    try:
+        with open(f'{path}.bin', 'rb') as fhand:
+            book = pickle.load(fhand)        
+        return book
+    except:
+        print(f'ERROR: Imposible leer la agenda [{os.path.basename(path)}]!')
+        sleep(2)
+        main_menu()
 
 
 def create_phonebook(path):
@@ -31,12 +53,12 @@ def create_phonebook(path):
         main_menu()
     
     global phonebook
-    global phonebook_path
+    global phonebook_name
     try:
         fhand = open(f'{path}.bin', 'wb')
         fhand.close()
         phonebook = {}
-        phonebook_path = path
+        phonebook_name = path
     except:
         print(f'ERROR: No se pudo crear la agenda [{path}]!')
         sleep(2)
@@ -51,39 +73,12 @@ def delete_phonebook(path):
         sleep(1)
         if os.path.exists(f'{path}.bin'):
             os.remove(f'{path}.bin')
-            global phonebook_path
-            phonebook_path = 'phonebook'
+            global phonebook_name
+            phonebook_name = 'phonebook'
         else:
             print(f'La agenda [{path}] NO existe, compruebe el nombre y la ruta.')
             
         
-def load_phonebook(path):
-    print(f'Abriendo la agenda [{path}] ...')
-    sleep(1)
-    if not os.path.exists(f'{path}.bin'):
-        print(f'La agenda "{path}" no existe!')
-        sleep(2)
-        main_menu()
-    
-    global phonebook_path
-    if not os.path.getsize(f'{path}.bin'):
-        print('La agenda está vacía')
-        phonebook_path = path
-        return
-    
-    global phonebook
-    try:
-        with open(f'{path}.bin', 'rb') as fhand:
-            phonebook = pickle.load(fhand)
-        
-        phonebook_path = path
-    
-    except:
-        print(f'ERROR: Imposible leer la agenda "{path}"!')
-        sleep(2)
-        main_menu()
-
-
 def save_phonebook(path):
     with open(f'{path}.bin', 'rb') as fhand:
         saved_phonebook = pickle.load(fhand)
@@ -117,7 +112,7 @@ def show_contacts(contact):
 def add_contact(first, last, numbers):
     name = f'{last}, {first}'
     phonebook[name] = numbers
-    save_phonebook(phonebook_path)
+    save_phonebook(phonebook_name)
     
 
 def show_all_contacts():
@@ -166,7 +161,7 @@ def delete_phone(contact):
 
 def delete_contact(contact):
     if contact in phonebook:
-        print(f'Borrando el contacto \'{contact}\' de la agenda [{phonebook_path}] ...')
+        print(f'Borrando el contacto \'{contact}\' de la agenda [{phonebook_name}] ...')
         del phonebook[contact]
         sleep(2)
     else:
@@ -177,7 +172,7 @@ def delete_contact(contact):
 def secondary_menu():
     while True:
         os.system('clear')
-        print(f'  AGENDA TELEFÓNICA: [{phonebook_path}]')
+        print(f'  AGENDA TELEFÓNICA: [{phonebook_name}]')
         print('')
         print('    [1] Mostrar contacto')
         print('    [2] Agregar contacto')
@@ -230,19 +225,17 @@ def secondary_menu():
             delete_contact(contact)
         
         elif option == '7': # save
-            save_phonebook(phonebook_path)
+            save_phonebook(phonebook_name)
         
         elif option == '8': # main menu
-            save_phonebook(phonebook_path)
+            save_phonebook(phonebook_name)
             main_menu()
         
         else:
             pass
         
 
-# TODO: Opción en el menú principal para listar las agendas creadas
-# TODO: (necesitaré un archivo donde guardar las rutas)
-# TODO: Probablemente me convenga guardar todas las agendas en un mismo directorio
+# TODO: Quzás implementar una función para listar las agendas en lugar de hacerlo en el menú
 def main_menu():
     while True:
         os.system('clear')
@@ -259,32 +252,40 @@ def main_menu():
         option = input('Elige una opción: ')
         
         if option == '1': # Cargar
-            path = input(f'Ruta y nombre de la agenda [{phonebook_path}]: ')
-            if path:
-                load_phonebook(path)
+            global phonebook
+            global phonebook_name
+            book_path = input(f'Nombre de la agenda [{phonebook_name}]: ')
+            if book_path:
+                phonebook = load_phonebook(f'{BOOKS}/{book_path}')
+                phonebook_name = book_path
             else:
-                load_phonebook(phonebook_path)
+                phonebook = load_phonebook(f'{BOOKS}/{phonebook_name}')
             
             secondary_menu()
             
         elif option == '2': # Crear
-            path = input(f'Ruta y nombre de la agenda [{phonebook_path}]: ')
+            path = input(f'Ruta y nombre de la agenda [{phonebook_name}]: ')
             if path:
                 create_phonebook(path)
             else:
-                create_phonebook(phonebook_path)
+                create_phonebook(phonebook_name)
         
             secondary_menu()
         
         elif option == '3': # Borrar
-            path = input(f'Ruta y nombre de la agenda [{phonebook_path}]: ')
+            path = input(f'Ruta y nombre de la agenda [{phonebook_name}]: ')
             if path:
                 delete_phonebook(path)
             else:
-                delete_phonebook(phonebook_path)
+                delete_phonebook(phonebook_name)
         
-        elif option == '4':
-            pass
+        elif option == '4': # Listar
+            print('\n  Agendas disponibles:')
+            books = os.listdir(BOOKS)
+            for book in books:
+                if book.endswith('.bin'):
+                    print('    -', book.split('.')[0])
+            input('\nPulsa enter para continuar ...')
         
         elif option == '5': # Salir
             print('\nSee you soon ...\n')
