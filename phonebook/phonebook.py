@@ -21,21 +21,21 @@ phonebook_name = 'phonebook'
 
 def load_phonebook(book_path):
     book_name = os.path.basename(book_path)
-    
+
     print(f'Abriendo la agenda [{book_name}] ...')
     sleep(1)
     if not os.path.exists(f'{book_path}.bin'):
         print(f'La agenda [{book_name}] no existe!')
         sleep(2)
         return -1
-    
+
     if not os.path.getsize(f'{book_path}.bin'):
         print(f'La agenda [{book_name}] está vacía')
         return {}
-    
+
     try:
         with open(f'{book_path}.bin', 'rb') as fhand:
-            book = pickle.load(fhand)        
+            book = pickle.load(fhand)
         return book
     except:
         print(f'ERROR: ¡La agenda [{book_name}] existe, pero no se pudo leer!')
@@ -45,7 +45,7 @@ def load_phonebook(book_path):
 
 def create_phonebook(book_path):
     book_name = os.path.basename(book_path)
-    
+
     print(f'Creando la agenda [{book_name}] ...')
     sleep(1)
     if os.path.exists(f'{book_path}.bin') and os.path.getsize(f'{book_path}.bin'):
@@ -55,7 +55,7 @@ def create_phonebook(book_path):
               )
         input('Pulse enter para continuar ...')
         return -1
-    
+
     try:
         fhand = open(f'{book_path}.bin', 'wb')
         fhand.close()
@@ -69,7 +69,7 @@ def create_phonebook(book_path):
 
 def delete_phonebook(book_path):
     book_name = os.path.basename(book_path)
-    
+
     option = input(f'Está seguro que desea borrar permanentemente la agenda [{book_name}] [y/N]: ')
     if option.lower() == 'y':
         if not os.path.exists(f'{book_path}.bin'):
@@ -86,14 +86,14 @@ def delete_phonebook(book_path):
     except:
         print(f'ERROR: ¡La agenda [{book_name}] existe, pero no se pudo borrar!')
         sleep(2)
-        return -1            
-            
-        
+        return -1
+
+
 def save_phonebook(book_path, pbook):
     book_name = os.path.basename(book_path)
-    
+
     try:
-        print(f'Guardando la agenda [{book_name}] ...')    
+        print(f'Guardando la agenda [{book_name}] ...')
         with open(f'{book_path}.bin', 'wb') as fhand:
             pickle.dump(pbook, fhand)
         sleep(1)
@@ -105,14 +105,18 @@ def save_phonebook(book_path, pbook):
 
 def phonebook_change(book_path, pbook):
     book_name = os.path.basename(book_path)
-    
+
     try:
-        with open(f'{book_path}.bin', 'rb') as fhand:
-            saved_pbook = pickle.load(fhand)
+        if os.path.getsize(f'{book_path}.bin'):
+            with open(f'{book_path}.bin', 'rb') as fhand:
+                saved_pbook = pickle.load(fhand)
+        else:
+            saved_pbook = {}
+            
         if saved_pbook == pbook:
             return False
         else:
-            return True        
+            return True
     except:
         print(f'ERROR: ¡Hubo un error comprobando la agenda [{book_name}]!')
         sleep(2)
@@ -127,25 +131,25 @@ def show_contacts(contact, pbook):
             print(f'\n  * {name}:')
             for i in range(len(phones)):
                 print(f'      - Tel. {i+1}: {phones[i]}')
-    
-    if not match:  
+
+    if not match:
         print('No hubo coincidencias.')
         sleep(1)
-    
+
     input('\nPersione enter para continuar ...')
 
 
 def add_contact(first, last, numbers, pbook):
     name = f'{last}, {first}'
     pbook[name] = numbers
-    
+
 
 def show_all_contacts(pbook):
     for name, phones in pbook.items():
         print(f'\n  * {name}:')
         for i in range(len(phones)):
             print(f'      - Tel. {i+1}: {phones[i]}')
-    
+
     input('\nPersione enter para continuar ...')
 
 
@@ -162,12 +166,12 @@ def delete_phone(contact, pbook):
         print(f'ERROR: El nombre de contacto \'{contact}\' es incorrecto!')
         sleep(2)
         return -1
-    
+
     if pbook[contact]:
         phones = pbook[contact]
         for i in range(len(phones)):
             print(f'[{i+1}] {phones[i]}')
-        
+
         try:
             option = int(input('\nDime qué teléfono deseas borrar: '))
             if option < 1:
@@ -179,21 +183,22 @@ def delete_phone(contact, pbook):
             print('\nERROR: Opción incorrecta')
             sleep(2)
             return -1
-            
+
     else:
         print(f'\n\'{contact}\' no tiene ningún teléfono asociado.')
         sleep(2)
-        
+
 
 def delete_contact(contact, pbook):
-    if contact in pbook:        
+    if contact in pbook:
         del pbook[contact]
     else:
         print(f'\'{contact}\' No existe.')
         return -1
-    
+
 
 def secondary_menu():
+    global phonebook           # No es necesario, pero creo que brinda claridad.
     while True:
         os.system('clear')
         print(f'  AGENDA TELEFÓNICA: [{phonebook_name}]')
@@ -207,14 +212,14 @@ def secondary_menu():
         print('    [7] Guardar contactos')
         print('    [8] Menú principal')
         print('')
-        
+
         option = input('Elige una opción: ')
-        
+
 # ------------------------------- Show contact ------------------------------- #
         if option == '1':
             contact = input('Escribe el nombre o parte del contacto: ')
             if not contact:
-                continue 
+                continue
             show_contacts(contact.strip(), phonebook)
 
 # ------------------------------- Add contact -------------------------------- #
@@ -227,9 +232,9 @@ def secondary_menu():
                                 ' (enter para terminar): '
                                 )
                 if not phone:
-                    break           
+                    break
                 phones.append(phone.strip())
-                
+
             add_contact(first_name, last_name, phones, phonebook)
 
 # ------------------------------- All contacts ------------------------------- #
@@ -265,13 +270,13 @@ def secondary_menu():
                 print('Hay cambios sin guardar en su agenda')
                 save = input('Desea guardarlos antes de salir [Y/n]: ')
                 while True:
-                    if save.lower() == 'y':
+                    if save.lower() == 'y' or save == '':
                         save_phonebook(f'{BOOKS}/{phonebook_name}', phonebook)
                         break
                     elif save.lower() == 'n':
-                        break 
+                        break
             main_menu()
-            
+
 # --------------------------------- Others ----------------------------------- #
         else:
             pass
@@ -291,7 +296,7 @@ def main_menu():
         print('    [4] Listar agendas creadas')
         print('    [5] Salir')
         print()
-                
+
         option = input('Elige una opción: ')
 
 # ------------------------------- Abrir agenda ------------------------------- #
@@ -300,29 +305,29 @@ def main_menu():
             book_name = input(f'Nombre de la agenda [{phonebook_name}]: ')
             if book_name:
                 phonebook_name = book_name
-                
+
             pb = load_phonebook(f'{BOOKS}/{phonebook_name}')
             if pb == -1:
                 phonebook_name = last_pb_name
                 continue
-            
+
             phonebook = pb
             secondary_menu()
-            
+
 # ------------------------------- Crear agenda ------------------------------- #
         elif option == '2':
             last_pb_name = phonebook_name
             book_name = input(f'Nombre de la agenda [{phonebook_name}]: ')
             if book_name:
                 phonebook_name = book_name
-                
+
             pb = create_phonebook(f'{BOOKS}/{phonebook_name}')
             if pb == -1:
                 phonebook_name = last_pb_name
                 continue
-            
+
             phonebook = pb
-            secondary_menu()            
+            secondary_menu()
 
 # ------------------------------- Borrar agenda ------------------------------ #
         elif option == '3':
@@ -330,13 +335,13 @@ def main_menu():
             book_name = input(f'Nombre de la agenda [{phonebook_name}]: ')
             if book_name:
                 phonebook_name = book_name
-                
+
             pb = delete_phonebook(f'{BOOKS}/{phonebook_name}')
             if pb == -1:
                 phonebook_name = last_pb_name
                 continue
 
-# ------------------------------- Listar agenda ------------------------------ #        
+# ------------------------------- Listar agenda ------------------------------ #
         elif option == '4':
             print('\n  Agendas disponibles:')
             books = os.listdir(BOOKS)
@@ -344,13 +349,14 @@ def main_menu():
                 if book.endswith('.bin'):
                     print('    -', book.split('.')[0])
             input('\nPulsa enter para continuar ...')
-        
-# ------------------------------- Salir -------------------------------------- #        
+
+# ------------------------------- Salir -------------------------------------- #
         elif option == '5':
             print('\nSee you soon ...\n')
             sys.exit()
-            
-        else: # Otro
+
+# --------------------------------- Others ----------------------------------- #
+        else:
             pass
 
 
@@ -367,7 +373,7 @@ if __name__ == '__main__':
             print('       Aún podrá trabajar con la agenda, pero no podrá')
             print('       guardar los cambios realizados.\n')
             input('Presione enter para seguir ...')
-    
+
     if not os.path.exists(BOOKS):
         try:
             os.mkdir(BOOKS)
@@ -376,5 +382,5 @@ if __name__ == '__main__':
             print('       Aún podrá trabajar con la agenda, pero no podrá')
             print('       guardar los cambios realizados.\n')
             input('Presione enter para seguir ...')
-            
+
     main_menu()
