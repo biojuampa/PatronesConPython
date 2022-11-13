@@ -71,7 +71,7 @@ def delete_phonebook(book_path):
     book_name = os.path.basename(book_path)
     
     option = input(f'Está seguro que desea borrar permanentemente la agenda [{book_name}] [y/N]: ')
-    if option == 'y':
+    if option.lower() == 'y':
         if not os.path.exists(f'{book_path}.bin'):
             print(f'La agenda [{book_name}] NO existe, compruebe el nombre.')
             sleep(2)
@@ -211,7 +211,7 @@ def secondary_menu():
         option = input('Elige una opción: ')
         
 # ------------------------------- Show contact ------------------------------- #
-        if option == '1': 
+        if option == '1':
             contact = input('Escribe el nombre o parte del contacto: ')
             if not contact:
                 continue 
@@ -259,11 +259,20 @@ def secondary_menu():
         elif option == '7':
             save_phonebook(f'{BOOKS}/{phonebook_name}', phonebook)
 
-# ------------------------------- Main menu ---------------------------------- #
+# --------------------------- Back to main menu ------------------------------ #
         elif option == '8':
-            save_phonebook(f'{BOOKS}/{phonebook_name}', phonebook)
+            if phonebook_change(f'{BOOKS}/{phonebook_name}', phonebook):
+                print('Hay cambios sin guardar en su agenda')
+                save = input('Desea guardarlos antes de salir [Y/n]: ')
+                while True:
+                    if save.lower() == 'y':
+                        save_phonebook(f'{BOOKS}/{phonebook_name}', phonebook)
+                        break
+                    elif save.lower() == 'n':
+                        break 
             main_menu()
-        
+            
+# --------------------------------- Others ----------------------------------- #
         else:
             pass
 
@@ -271,7 +280,6 @@ def secondary_menu():
 def main_menu():
     global phonebook
     global phonebook_name
-        
     while True:
         os.system('clear')
         print()
@@ -283,9 +291,9 @@ def main_menu():
         print('    [4] Listar agendas creadas')
         print('    [5] Salir')
         print()
-        
+                
         option = input('Elige una opción: ')
-        
+
 # ------------------------------- Abrir agenda ------------------------------- #
         if option == '1':
             last_pb_name = phonebook_name
