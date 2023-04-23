@@ -1,6 +1,11 @@
 # Java #
 *.class
 
+# Intellij Idea #
+.idea/
+out/
+*.iml
+
 # C #
 Ejercicios\ con\ C/*
 !Ejercicios\ con\ C/*.c
