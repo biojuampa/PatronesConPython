@@ -2,9 +2,9 @@
 *.class
 
 # Intellij Idea #
-.idea/
-out/
-*.iml
+# .idea/
+# out/
+# *.iml
 
 # C #
 Ejercicios\ con\ C/*
