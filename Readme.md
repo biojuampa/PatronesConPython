@@ -1,3 +1,3 @@
 # Patrones de Diseño con Python
 
-Aplicación de distintos patrones de diseño llevados a la práctica.
+Distintos patrones de diseño llevados a la práctica con el lenguaje de programación Python.
