@@ -1,3 +1,3 @@
-# Repositorio para pruebas
+# Patrones de Diseño con Python
 
-Aquí iré haciendo diversas pruebas sin sentido para la mayoría de las personas, las cuales tienen como objetivo ayudarme a consolidar mi conocimiento y manejo del control de versiones __git__.
+Aplicación de distintos patrones de diseño llevados a la práctica.
